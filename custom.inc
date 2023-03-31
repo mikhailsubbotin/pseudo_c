@@ -1,3 +1,7 @@
+; Pseudo C / dependencies.inc
+; ---------------------------
+; 31.03.2022 © Mikhail Subbotin
+
 ; PSEUDO_C_COMPATIBILITY_WIN9X equ TRUE
 ; PSEUDO_C_USE_ONLY_WINAPI equ TRUE
 

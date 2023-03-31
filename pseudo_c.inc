@@ -10,6 +10,7 @@ sizeof.EOL = 2
 display 'Pseudo C for FASM by Mikhail Subbotin', EOL
 
 include 'custom.inc'
+include 'dependencies.inc'
 
 include 'errno.inc'
 include 'gui.inc'
