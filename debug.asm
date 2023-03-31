@@ -1,10 +1,6 @@
 ; Pseudo C / debug.asm
 ; --------------------
-; 01.12.2020 © Mikhail Subbotin
-
-;        stdcall DebugBreakpointMessage, HWND_DESKTOP, NULL
-;        stdcall DebugBreakpointMessageA, HWND_DESKTOP, NULL
-;        stdcall DebugBreakpointMessageW, HWND_DESKTOP, NULL
+; 31.03.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 

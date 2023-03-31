@@ -1,6 +1,6 @@
 ; Pseudo C / string.asm
 ; ---------------------
-; 24.08.2021 © Mikhail Subbotin
+; 30.03.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -187,8 +187,7 @@ _src = 8
         push    edi
         mov     edi, [esp+8+_dst]
         cld
-    @@: lodsb
-        stosb
+    @@: movsb
         test    al, al
         jnz     @b
         pop     edi esi
@@ -601,8 +600,7 @@ _src = 8
         push    edi
         mov     edi, [esp+8+_dst]
         cld
-    @@: lodsw
-        stosw
+    @@: movsw
         test    ax, ax
         jnz     @b
         pop     edi esi

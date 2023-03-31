@@ -1,6 +1,6 @@
 ; Pseudo C / fs.asm
 ; -----------------
-; 17.07.2020 © Mikhail Subbotin
+; 31.03.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -169,7 +169,7 @@ _pszPath = 4
         ccall   c_strlen, ebx
         test    eax, eax
         jz      .error_path_not_found
-        add     eax, 1 + 1 ; 1 завершающий '\' + 1 завершающий 0
+        add     eax, 1 + 1
         stdcall ProcessHeapAlloc, NULL, eax
         test    eax, eax
         jz      .error_memory_alloc
@@ -274,9 +274,9 @@ _pwcsPath = 4
         jz      .error_unable_to_get_full_directory_path
         cmp     eax, 4
         jb      .alloc_path_buffer
-        cmp     dword [ebx], 0x005C005C ; '\\'
+        cmp     dword [ebx], '\' or ('\' shl 16)
         jnz     @f
-        cmp     dword [ebx+4], 0x005C003F ; '?\'
+        cmp     dword [ebx+4], '?' or ('\' shl 16)
         jnz     @f
         add     ebx, 8
         sub     eax, 4
@@ -285,7 +285,7 @@ _pwcsPath = 4
 
 .alloc_path_buffer:
         mov     esi, eax
-        add     eax, 4 + 1 ; 4 символа префикса '\\?\' + 1 символ завершающего '\'
+        add     eax, 4 + 1
         shl     eax, 1
         stdcall ProcessHeapAlloc, NULL, eax
         test    eax, eax
@@ -294,8 +294,8 @@ _pwcsPath = 4
         mov     esi, eax
         cmp     ecx, MAX_PATH - 12 - 1
         jb      .get_full_directory_path
-        mov     dword [eax], 0x005C005C ; '\\'
-        mov     dword [eax+4], 0x005C003F ; '?\'
+        mov     dword [eax], '\' or ('\' shl 16)
+        mov     dword [eax+4], '?' or ('\' shl 16)
         add     eax, 8
 
 .get_full_directory_path:
@@ -869,12 +869,7 @@ _pszPath = 4
         push    ebx
         invoke  SetErrorMode, SEM_FAILCRITICALERRORS
         push    eax ; for SetErrorMode
-        push    dword [esp+4+4+_pszPath]
-        if defined PSEUDO_C_USE_FSNTLPS & PSEUDO_C_USE_FSNTLPS eq TRUE
-        call    [FSNTLPS_GetFileAttributesA]
-        else
-        call    [GetFileAttributesA]
-        end if
+        invoke  GetFileAttributesA, dword [esp+4+4+_pszPath]
         cmp     eax, INVALID_FILE_ATTRIBUTES
         setnz   bl
         call    [SetErrorMode]
@@ -892,12 +887,7 @@ _pwcsPath = 4
         push    ebx
         invoke  SetErrorMode, SEM_FAILCRITICALERRORS
         push    eax ; for SetErrorMode
-        push    dword [esp+4+4+_pwcsPath]
-        if defined PSEUDO_C_USE_FSNTLPS & PSEUDO_C_USE_FSNTLPS eq TRUE
-        call    [FSNTLPS_GetFileAttributesW]
-        else
-        call    [GetFileAttributesW]
-        end if
+        invoke  GetFileAttributesW, dword [esp+4+4+_pwcsPath]
         cmp     eax, INVALID_FILE_ATTRIBUTES
         setnz   bl
         call    [SetErrorMode]
@@ -905,11 +895,6 @@ _pwcsPath = 4
         pop     ebx
         retn    4
 endp
-
-; Примечание к Windows 8.1
-; ------------------------
-; Создавая файл в корне системного диска, учтите, что если у Вашей программы не достаточно прав,
-; Windows перенаправит файлы в каталог "C:\Users\<Пользователь>\AppData\Local\VirtualStore\"!
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -937,7 +922,7 @@ _dwFlagsAndAttributes = 20
         invoke  GetFullPathNameA, ebx, esi, eax, NULL
         test    eax, eax
         jz      .push_current_last_system_error
-        xor     si, si ; обнуляем регистр переменной кол-ва успешно созданных поддиректорий.
+        xor     si, si
         xor     ah, ah
         jmp     .recursively_directory_creation_loop_without_increment_address
 
@@ -981,7 +966,7 @@ _dwFlagsAndAttributes = 20
 .recursively_directory_creation_loop_next:
         test    bl, bl
         jnz     .recursively_directory_creation_loop_without_increment_address
-        xor     ebx, ebx ; в режиме создания директории процедура должна вернуть NULL!
+        xor     ebx, ebx
         jmp     .free_path_buffer_and_return
 
         align   PSEUDO_C_INSTRUCTIONS_ALIGN
@@ -1052,8 +1037,6 @@ _dwFlagsAndAttributes = 20
         test    eax, eax
         jnz     @f
         invoke  GetLastError
-        ;cmp     eax, ERROR_PATH_NOT_FOUND ; нужно проверить на разных версиях Windows, возвращает ли система в данной ситуации ERROR_PATH_NOT_FOUND (8.1 - не возвращает).
-        ;jz      @f
         cmp     eax, ERROR_FILE_NOT_FOUND
         jnz     .free_path_buffer_and_return_invalid_handle_value
     @@: dec     si
@@ -1084,9 +1067,9 @@ _dwFlagsAndAttributes = 20
         jz      .return_invalid_handle_value
         cmp     eax, 4
         jb      .alloc_path_buffer
-        cmp     dword [ebx], 0x005C005C ; '\\'
+        cmp     dword [ebx], '\' or ('\' shl 16)
         jnz     .alloc_path_buffer
-        cmp     dword [ebx+4], 0x005C003F ; '?\'
+        cmp     dword [ebx+4], '?' or ('\' shl 16)
         jnz     .alloc_path_buffer
         add     ebx, 8
         sub     eax, 4
@@ -1095,18 +1078,18 @@ _dwFlagsAndAttributes = 20
 
 .alloc_path_buffer:
         mov     esi, eax
-        cmp     eax, MAX_PATH - 12 - 1 ; нужно уточнить
+        cmp     eax, MAX_PATH - 12 - 1
         jb      @f
-        add     eax, 4 ; 4 символа префикса '\\?\'
+        add     eax, 4
     @@: shl     eax, 1
         stdcall ProcessHeapAlloc, NULL, eax
         test    eax, eax
         jz      .error_unable_to_alloc_path_buffer
         mov     ebp, eax
-        cmp     esi, MAX_PATH - 12 - 1 ; нужно уточнить
+        cmp     esi, MAX_PATH - 12 - 1
         jb      .get_full_file_path
-        mov     dword [eax], 0x005C005C ; '\\'
-        mov     dword [eax+4], 0x005C003F ; '?\'
+        mov     dword [eax], '\' or ('\' shl 16)
+        mov     dword [eax+4], '?' or ('\' shl 16)
         add     eax, 8
 
 .get_full_file_path:
@@ -1114,7 +1097,7 @@ _dwFlagsAndAttributes = 20
         invoke  GetFullPathNameW, ebx, esi, eax, NULL
         test    eax, eax
         jz      .push_current_last_system_error
-        xor     si, si ; обнуляем регистр переменной кол-ва успешно созданных поддиректорий.
+        xor     si, si
         xor     cl, cl
         jmp     .recursively_directory_creation_loop_without_increment_address
 
@@ -1158,7 +1141,7 @@ _dwFlagsAndAttributes = 20
 .recursively_directory_creation_loop_next:
         test    bx, bx
         jnz     .recursively_directory_creation_loop_without_increment_address
-        xor     ebx, ebx ; в режиме создания директории процедура должна вернуть NULL!
+        xor     ebx, ebx
         jmp     .free_path_buffer_and_return
 
         align   PSEUDO_C_INSTRUCTIONS_ALIGN
@@ -1232,8 +1215,6 @@ _dwFlagsAndAttributes = 20
         test    eax, eax
         jnz     @f
         invoke  GetLastError
-        ;cmp     eax, ERROR_PATH_NOT_FOUND ; нужно проверить на разных версиях Windows, возвращает ли система в данной ситуации ERROR_PATH_NOT_FOUND (8.1 - не возвращает).
-        ;jz      @f
         cmp     eax, ERROR_FILE_NOT_FOUND
         jnz     .free_path_buffer_and_return_invalid_handle_value
     @@: dec     si
@@ -1273,7 +1254,7 @@ _hTemplateFile = 28
         invoke  GetFullPathNameA, ebx, esi, eax, NULL
         test    eax, eax
         jz      .push_current_last_system_error
-        xor     si, si ; обнуляем регистр переменной кол-ва успешно созданных поддиректорий.
+        xor     si, si
         xor     ah, ah
         jmp     .recursively_directory_creation_loop_without_increment_address
 
@@ -1317,7 +1298,7 @@ _hTemplateFile = 28
 .recursively_directory_creation_loop_next:
         test    bl, bl
         jnz     .recursively_directory_creation_loop_without_increment_address
-        xor     ebx, ebx ; в режиме создания директории процедура должна вернуть NULL!
+        xor     ebx, ebx
         jmp     .free_path_buffer_and_return
 
         align   PSEUDO_C_INSTRUCTIONS_ALIGN
@@ -1388,8 +1369,6 @@ _hTemplateFile = 28
         test    eax, eax
         jnz     @f
         invoke  GetLastError
-        ;cmp     eax, ERROR_PATH_NOT_FOUND ; нужно проверить на разных версиях Windows, возвращает ли система в данной ситуации ERROR_PATH_NOT_FOUND (8.1 - не возвращает).
-        ;jz      @f
         cmp     eax, ERROR_FILE_NOT_FOUND
         jnz     .free_path_buffer_and_return_invalid_handle_value
     @@: dec     si
@@ -1422,9 +1401,9 @@ _hTemplateFile = 28
         jz      .return_invalid_handle_value
         cmp     eax, 4
         jb      .alloc_path_buffer
-        cmp     dword [ebx], 0x005C005C ; '\\'
+        cmp     dword [ebx], '\' or ('\' shl 16)
         jnz     .alloc_path_buffer
-        cmp     dword [ebx+4], 0x005C003F ; '?\'
+        cmp     dword [ebx+4], '?' or ('\' shl 16)
         jnz     .alloc_path_buffer
         add     ebx, 8
         sub     eax, 4
@@ -1433,18 +1412,18 @@ _hTemplateFile = 28
 
 .alloc_path_buffer:
         mov     esi, eax
-        cmp     eax, MAX_PATH - 12 - 1 ; нужно уточнить
+        cmp     eax, MAX_PATH - 12 - 1
         jb      @f
-        add     eax, 4 ; 4 символа префикса '\\?\'
+        add     eax, 4
     @@: shl     eax, 1
         stdcall ProcessHeapAlloc, NULL, eax
         test    eax, eax
         jz      .error_unable_to_alloc_path_buffer
         mov     ebp, eax
-        cmp     esi, MAX_PATH - 12 - 1 ; нужно уточнить
+        cmp     esi, MAX_PATH - 12 - 1
         jb      .get_full_file_path
-        mov     dword [eax], 0x005C005C ; '\\'
-        mov     dword [eax+4], 0x005C003F ; '?\'
+        mov     dword [eax], '\' or ('\' shl 16)
+        mov     dword [eax+4], '?' or ('\' shl 16)
         add     eax, 8
 
 .get_full_file_path:
@@ -1452,7 +1431,7 @@ _hTemplateFile = 28
         invoke  GetFullPathNameW, ebx, esi, eax, NULL
         test    eax, eax
         jz      .push_current_last_system_error
-        xor     si, si ; обнуляем регистр переменной кол-ва успешно созданных поддиректорий.
+        xor     si, si
         xor     cl, cl
         jmp     .recursively_directory_creation_loop_without_increment_address
 
@@ -1496,7 +1475,7 @@ _hTemplateFile = 28
 .recursively_directory_creation_loop_next:
         test    bx, bx
         jnz     .recursively_directory_creation_loop_without_increment_address
-        xor     ebx, ebx ; в режиме создания директории процедура должна вернуть NULL!
+        xor     ebx, ebx
         jmp     .free_path_buffer_and_return
 
         align   PSEUDO_C_INSTRUCTIONS_ALIGN
@@ -1570,8 +1549,6 @@ _hTemplateFile = 28
         test    eax, eax
         jnz     @f
         invoke  GetLastError
-        ;cmp     eax, ERROR_PATH_NOT_FOUND ; нужно проверить на разных версиях Windows, возвращает ли система в данной ситуации ERROR_PATH_NOT_FOUND (8.1 - не возвращает).
-        ;jz      @f
         cmp     eax, ERROR_FILE_NOT_FOUND
         jnz     .free_path_buffer_and_return_invalid_handle_value
     @@: dec     si

@@ -1,12 +1,8 @@
 ; Pseudo C / stdout.asm
 ; ---------------------
-; 27.03.2022 © Mikhail Subbotin
+; 31.03.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
-
-;       call    PrepareStdOutW
-;       test    eax, eax
-;       jz      .error
 
 proc PrepareStdOutW
         push    esi
@@ -64,17 +60,13 @@ endp
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
-;       call    GetStdOutCurrentPosition
-;       cmp     eax, -1
-;       jz      .error
-
 proc GetStdOutCurrentPosition
         invoke  GetStdHandle, STD_OUTPUT_HANDLE
         cmp     eax, INVALID_HANDLE_VALUE
         jz      .return
         push    esi
         mov     esi, eax
-        lea     ecx, [esp-4] ; FIX ME !
+        lea     ecx, [esp-4]
         invoke  GetConsoleMode, eax, ecx
         test    eax, eax
         jz      .get_file_offset
@@ -105,10 +97,6 @@ proc GetStdOutCurrentPosition
 endp
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
-
-;       call    StdOutClear
-;       test    eax, eax
-;       jz      .error
 
 proc StdOutClear
 
@@ -154,10 +142,6 @@ endp
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
-;       stdcall SetStdOutCurrentPosition, [Position]
-;       cmp     eax, -1
-;       jz      .error
-
 proc SetStdOutCurrentPosition
 
 _position = 4
@@ -167,7 +151,7 @@ _position = 4
         jz      .return
         push    esi
         mov     esi, eax
-        lea     ecx, [esp-4] ; FIX ME !
+        lea     ecx, [esp-4]
         invoke  GetConsoleMode, eax, ecx
         test    eax, eax
         jz      .set_file_offset
@@ -751,7 +735,7 @@ proc StdOutErrorCodePrintA
         mov     dword [esi+4], ': 0x'
         add     esi, 8
         ccall   xtoua, esi, 8, edi
-        mov     word [esi+8], 0x000A ; '\n', 0
+        mov     word [esi+8], EOL_LF
         stdcall StdOutPrintA, esp
         cmp     eax, -1
         jz      @f
@@ -762,7 +746,7 @@ proc StdOutErrorCodePrintA
         align   PSEUDO_C_INSTRUCTIONS_ALIGN
     @@:
         xor     eax, eax
-        mov     [esi+8], al ; 0
+        mov     [esi+8], al
         invoke  MessageBoxA, eax, edi, eax, MB_ICONERROR or MB_OK
         add     esp, ebx
         pop     esi edi ebx
@@ -803,18 +787,18 @@ proc StdOutErrorCodePrintW
         call    c_memcpy
         mov     eax, esi
         add     esp, 12
-        mov     word [esp+eax], 0x0020 ; ' '
+        mov     word [esp+eax], ' '
         add     eax, 2
 
 .errcode:
         lea     esi, [esp+eax]
-        mov     dword [esi], 0x006F0043 ; 'Co'
-        mov     dword [esi+4], 0x00650064 ; 'de'
-        mov     dword [esi+8], 0x0020003A ; ': '
-        mov     dword [esi+12], 0x00780030 ; '0x'
+        mov     dword [esi], 'C' or ('o' shl 16)
+        mov     dword [esi+4], 'd' or ('e' shl 16)
+        mov     dword [esi+8], ':' or (' ' shl 16)
+        mov     dword [esi+12], '0' or ('x' shl 16)
         add     esi, 8 * 2
         ccall   xtouw, esi, 8, edi
-        mov     dword [esi+(8*2)], 0x0000000A ; '\n', 0
+        mov     dword [esi+(8*2)], EOL_LF
         stdcall StdOutPrintW, esp
         cmp     eax, -1
         jz      @f
@@ -825,7 +809,7 @@ proc StdOutErrorCodePrintW
         align   PSEUDO_C_INSTRUCTIONS_ALIGN
     @@:
         xor     eax, eax
-        mov     [esi+(8*2)], ax ; 0
+        mov     [esi+(8*2)], ax
         invoke  MessageBoxW, eax, edi, eax, MB_ICONERROR or MB_OK
         add     esp, ebx
         pop     esi edi ebx

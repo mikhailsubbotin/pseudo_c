@@ -1,6 +1,6 @@
 ; Pseudo C / entry.asm
 ; --------------------
-; 22.02.2022 © Mikhail Subbotin
+; 31.03.2022 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -389,10 +389,10 @@ proc fatalerrmsg.a
         mov     dword [esp], 'FATA'
         mov     dword [esp+4], 'L ER'
         mov     dword [esp+8], 'ROR:'
-        mov     dword [esp+12], 0x00783020 ; ' 0x'
+        mov     dword [esp+12], ' 0x '
         lea     ecx, [esp+15]
         ccall   xtoua, ecx, 8, eax
-        mov     word [esp+23], 0x0A0D ; EOL
+        mov     word [esp+23], EOL_CR or (EOL_LF shl 8)
         mov     byte [esp+25], 0
         stdcall StdOutPrintA, esp
         cmp     eax, -1
@@ -414,17 +414,17 @@ align PSEUDO_C_INSTRUCTIONS_ALIGN
 
 proc fatalerrmsg.w
         sub     esp, 52
-        mov     dword [esp], 0x00410046 ; 'FA'
-        mov     dword [esp+4], 0x00410054 ; 'TA'
-        mov     dword [esp+8], 0x0020004C ; 'L '
-        mov     dword [esp+12], 0x00520045 ; 'ER'
-        mov     dword [esp+16], 0x004F0052 ; 'RO'
-        mov     dword [esp+20], 0x003A0052 ; 'R:'
-        mov     dword [esp+24], 0x00300020 ; ' 0'
-        mov     word [esp+28], 0x0078 ; 'x'
+        mov     dword [esp], 'F' or ('A' shl 16)
+        mov     dword [esp+4], 'T' or ('A' shl 16)
+        mov     dword [esp+8], 'L' or (' ' shl 16)
+        mov     dword [esp+12], 'E' or ('R' shl 16)
+        mov     dword [esp+16], 'R' or ('O' shl 16)
+        mov     dword [esp+20], 'R' or (':' shl 16)
+        mov     dword [esp+24], ' ' or ('0' shl 16)
+        mov     word [esp+28], 'x'
         lea     ecx, [esp+30]
         ccall   xtouw, ecx, 8, eax
-        mov     dword [esp+46], 0x000A000D ; EOL
+        mov     dword [esp+46], EOL_CR or (EOL_LF shl 16)
         mov     word [esp+50], 0
         stdcall StdOutPrintW, esp
         cmp     eax, -1
@@ -449,7 +449,7 @@ proc fatalerrmsgbox.a
         mov     dword [esp], 'FATA'
         mov     dword [esp+4], 'L ER'
         mov     dword [esp+8], 'ROR:'
-        mov     dword [esp+12], 0x00783020 ; ' 0x'
+        mov     dword [esp+12], ' 0x '
         lea     ecx, [esp+15]
         ccall   xtoua, ecx, 8, eax
         mov     edx, esp
@@ -463,14 +463,14 @@ align PSEUDO_C_INSTRUCTIONS_ALIGN
 
 proc fatalerrmsgbox.w
         sub     esp, 48
-        mov     dword [esp], 0x00410046 ; 'FA'
-        mov     dword [esp+4], 0x00410054 ; 'TA'
-        mov     dword [esp+8], 0x0020004C ; 'L '
-        mov     dword [esp+12], 0x00520045 ; 'ER'
-        mov     dword [esp+16], 0x004F0052 ; 'RO'
-        mov     dword [esp+20], 0x003A0052 ; 'R:'
-        mov     dword [esp+24], 0x00300020 ; ' 0'
-        mov     word [esp+28], 0x0078 ; 'x'
+        mov     dword [esp], 'F' or ('A' shl 16)
+        mov     dword [esp+4], 'T' or ('A' shl 16)
+        mov     dword [esp+8], 'L' or (' ' shl 16)
+        mov     dword [esp+12], 'E' or ('R' shl 16)
+        mov     dword [esp+16], 'R' or ('O' shl 16)
+        mov     dword [esp+20], 'R' or (':' shl 16)
+        mov     dword [esp+24], ' ' or ('0' shl 16)
+        mov     word [esp+28], 'x'
         lea     ecx, [esp+30]
         ccall   xtouw, ecx, 8, eax
         mov     edx, esp

@@ -1,11 +1,6 @@
 ; Pseudo C / system.asm
 ; ---------------------
-; 10.12.2020 © Mikhail Subbotin
-
-;        call    IsWow64
-;        test    eax, eax
-;        js      .error
-;        jnz     .wow_64
+; 31.03.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 

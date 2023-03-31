@@ -1,6 +1,6 @@
 ; Pseudo C / path.asm
 ; -------------------
-; 21.08.2021 © Mikhail Subbotin
+; 31.03.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -11,12 +11,7 @@ _len = 8
 
         push    edi
         mov     edi, [esp+4+_buf]
-        push    dword [esp+4+_len] edi NULL
-        if defined PSEUDO_C_USE_FSNTLPS & PSEUDO_C_USE_FSNTLPS eq TRUE
-        call    [FSNTLPS_GetModuleFilePathA]
-        else
-        call    GetModuleFilePathA
-        end if
+        invoke  GetModuleFilePathA, NULL, edi, dword [esp+4+_len]
         cmp     eax, [esp+4+_len]
         ja      .restore_stack_and_return
         jz      .insufficient_buffer_prepare
@@ -57,12 +52,7 @@ _len = 8
 
         push    edi
         mov     edi, [esp+4+_buf]
-        push    dword [esp+4+_len] edi NULL
-        if defined PSEUDO_C_USE_FSNTLPS & PSEUDO_C_USE_FSNTLPS eq TRUE
-        call    [FSNTLPS_GetModuleFilePathW]
-        else
-        call    GetModuleFilePathW
-        end if
+        invoke  GetModuleFilePathW, NULL, edi, dword [esp+4+_len]
         cmp     eax, [esp+4+_len]
         ja      .restore_stack_and_return
         jz      .insufficient_buffer_prepare

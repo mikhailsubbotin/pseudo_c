@@ -1,6 +1,6 @@
 ; Pseudo C / pseudo_c.inc
 ; -----------------------
-; 28.03.2023 © Mikhail Subbotin
+; 31.03.2022 © Mikhail Subbotin
 
 EOL_CR = 13
 EOL_LF = 10

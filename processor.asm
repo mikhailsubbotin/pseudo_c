@@ -1,6 +1,6 @@
 ; Pseudo C / processor.asm
 ; ------------------------
-; 14.05.2020 © Mikhail Subbotin
+; 28.03.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -18,5 +18,18 @@ proc is_cpuid_instruction_supported
         setnz   al
         movzx   eax, al
         pop     ebx
+        retn
+endp
+
+align PSEUDO_C_INSTRUCTIONS_ALIGN
+
+proc is_intel_processor_behaviour
+        push    ebx
+        xor     edx, edx
+        mov     eax, 5
+        mov     ebx, 2
+        div     ebx
+        pop     ebx
+        setnz   al
         retn
 endp
