@@ -11,7 +11,7 @@ _len = 8
 
         push    edi
         mov     edi, [esp+4+_buf]
-        invoke  GetModuleFilePathA, NULL, edi, dword [esp+4+_len]
+        stdcall GetModuleFilePathA, NULL, edi, dword [esp+4+_len]
         cmp     eax, [esp+4+_len]
         ja      .restore_stack_and_return
         jz      .insufficient_buffer_prepare
@@ -52,7 +52,7 @@ _len = 8
 
         push    edi
         mov     edi, [esp+4+_buf]
-        invoke  GetModuleFilePathW, NULL, edi, dword [esp+4+_len]
+        stdcall GetModuleFilePathW, NULL, edi, dword [esp+4+_len]
         cmp     eax, [esp+4+_len]
         ja      .restore_stack_and_return
         jz      .insufficient_buffer_prepare
