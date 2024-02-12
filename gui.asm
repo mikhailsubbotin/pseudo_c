@@ -1,6 +1,6 @@
 ; Pseudo C / gui.asm
 ; ------------------
-; 11.08.2022 © Mikhail Subbotin
+; 24.04.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -411,4 +411,110 @@ align PSEUDO_C_INSTRUCTIONS_ALIGN
 align 4
 .InitCommonControlsEx db 'InitCommonControlsEx', 0
 
+endp
+
+align PSEUDO_C_INSTRUCTIONS_ALIGN
+
+proc MessageBoxSpecialA
+
+_hParentWnd = 4
+_lpszText = 8
+_lpszCaption = 12
+_dwStyle = 16
+_hInstance = 20
+_lpszIcon = 24
+
+        push    edi
+        sub     esp, sizeof.MSGBOXPARAMSA
+        mov     edi, esp
+        mov     ecx, sizeof.MSGBOXPARAMSA / 4
+        xor     eax, eax
+        cld
+        rep     stosd
+        mov     [esp+MSGBOXPARAMSA.cbSize], sizeof.MSGBOXPARAMSA
+        mov     eax, [esp+sizeof.MSGBOXPARAMSA+4+_hParentWnd]
+        mov     [esp+MSGBOXPARAMSA.hwndOwner], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSA+4+_hInstance]
+        mov     [esp+MSGBOXPARAMSA.hInstance], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSA+4+_lpszText]
+        mov     [esp+MSGBOXPARAMSA.lpszText], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSA+4+_lpszCaption]
+        mov     [esp+MSGBOXPARAMSA.lpszCaption], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSA+4+_dwStyle]
+        mov     [esp+MSGBOXPARAMSA.dwStyle], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSA+4+_lpszIcon]
+        mov     [esp+MSGBOXPARAMSA.lpszIcon], eax
+        invoke  MessageBoxIndirectA, esp
+        add     esp, sizeof.MSGBOXPARAMSA
+        test    eax, eax
+        jnz     @f
+        mov     eax, [esp+4+_dwStyle]
+        and     eax, 0xFFFFFFFF xor MB_USERICON
+        invoke  MessageBoxA, dword [esp+12+4+_hParentWnd], dword [esp+8+4+_lpszText], dword [esp+4+4+_lpszCaption], eax
+        test    eax, eax
+        jz      .return_system_error_code
+    @@: xor     eax, eax
+
+.restore_stack_and_return:
+        pop     edi
+        retn    24
+
+        align   PSEUDO_C_INSTRUCTIONS_ALIGN
+
+.return_system_error_code:
+        invoke  GetLastError
+        jmp     .restore_stack_and_return
+endp
+
+align PSEUDO_C_INSTRUCTIONS_ALIGN
+
+proc MessageBoxSpecialW
+
+_hParentWnd = 4
+_lpszText = 8
+_lpszCaption = 12
+_dwStyle = 16
+_hInstance = 20
+_lpszIcon = 24
+
+        push    edi
+        sub     esp, sizeof.MSGBOXPARAMSW
+        mov     edi, esp
+        mov     ecx, sizeof.MSGBOXPARAMSW / 4
+        xor     eax, eax
+        cld
+        rep     stosd
+        mov     [esp+MSGBOXPARAMSW.cbSize], sizeof.MSGBOXPARAMSW
+        mov     eax, [esp+sizeof.MSGBOXPARAMSW+4+_hParentWnd]
+        mov     [esp+MSGBOXPARAMSW.hwndOwner], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSW+4+_hInstance]
+        mov     [esp+MSGBOXPARAMSW.hInstance], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSW+4+_lpszText]
+        mov     [esp+MSGBOXPARAMSW.lpszText], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSW+4+_lpszCaption]
+        mov     [esp+MSGBOXPARAMSW.lpszCaption], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSW+4+_dwStyle]
+        mov     [esp+MSGBOXPARAMSW.dwStyle], eax
+        mov     eax, [esp+sizeof.MSGBOXPARAMSW+4+_lpszIcon]
+        mov     [esp+MSGBOXPARAMSW.lpszIcon], eax
+        invoke  MessageBoxIndirectW, esp
+        add     esp, sizeof.MSGBOXPARAMSW
+        test    eax, eax
+        jnz     @f
+        mov     eax, [esp+4+_dwStyle]
+        and     eax, 0xFFFFFFFF xor MB_USERICON
+        invoke  MessageBoxW, dword [esp+12+4+_hParentWnd], dword [esp+8+4+_lpszText], dword [esp+4+4+_lpszCaption], eax
+        test    eax, eax
+        jz      .return_system_error_code
+    @@: xor     eax, eax
+
+.restore_stack_and_return:
+        pop     edi
+        retn    24
+
+        align   PSEUDO_C_INSTRUCTIONS_ALIGN
+
+.return_system_error_code:
+        invoke  GetLastError
+        jmp     .restore_stack_and_return
 endp

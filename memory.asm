@@ -1,6 +1,6 @@
 ; Pseudo C / memory.asm
 ; ---------------------
-; 06.06.2022 © Mikhail Subbotin
+; 23.04.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -401,6 +401,39 @@ _cnt = 12
         retn
 endp
 
+align PSEUDO_C_INSTRUCTIONS_ALIGN
+
+proc memzero
+
+_ptr = 4
+_cnt = 8
+
+        cld
+        mov     ecx, [esp+_cnt]
+        push    edi
+        mov     edi, [esp+4+_ptr]
+        xor     eax, eax
+        cmp     ecx, 8
+        jb      .loc_c
+        bt      di, 0
+        jnc     .loc_a
+        stosb
+        dec     ecx
+.loc_a: bt      di, 1
+        jnc     .loc_b
+        stosw
+        sub     ecx, 2
+.loc_b: mov     dl, cl
+        shr     ecx, 2
+        rep     stosd
+        mov     cl, dl
+        and     cl, 11b
+.loc_c: rep     stosb
+        pop     edi
+        mov     eax, [esp+_ptr]
+        retn
+endp
+
 else
 
 proc c_memset
@@ -412,6 +445,57 @@ _cnt = 12
         movzx   eax, byte [esp+_val]
         mov     ecx, 0x01010101
         mul     ecx
+        mov     ecx, [esp+_cnt]
+        mov     edx, [esp+_ptr]
+        cmp     ecx, 8
+        jb      .loc_g
+        bt      dx, 0
+        jnc     .loc_a
+        dec     ecx
+        mov     [edx], ah
+        inc     edx
+.loc_a: bt      dx, 1
+        jnc     .loc_b
+        sub     ecx, 2
+        mov     [edx], ax
+        add     edx, 2
+.loc_b: push    ecx
+        shr     ecx, 2
+        jz      .loc_d
+.loc_c: mov     [edx], eax
+        add     edx, 4
+        dec     ecx
+        jnz     .loc_c
+.loc_d: pop     ecx
+        and     ecx, 11b
+        jz      .loc_f
+.loc_e: mov     [edx], al
+        inc     edx
+        dec     ecx
+        jnz     .loc_e
+.loc_f: mov     eax, [esp+_ptr]
+        retn
+
+        align   PSEUDO_C_INSTRUCTIONS_ALIGN
+.loc_g:
+        test    cl, 111b
+        jz      .loc_f
+.loc_h: mov     [edx], ah
+        inc     edx
+        dec     ecx
+        jnz     .loc_h
+        mov     eax, [esp+_ptr]
+        retn
+endp
+
+align PSEUDO_C_INSTRUCTIONS_ALIGN
+
+proc memzero
+
+_ptr = 4
+_cnt = 8
+
+        xor     eax, eax
         mov     ecx, [esp+_cnt]
         mov     edx, [esp+_ptr]
         cmp     ecx, 8

@@ -1,6 +1,6 @@
 ; Pseudo C / pseudo_c.inc
 ; -----------------------
-; 31.03.2022 © Mikhail Subbotin
+; 23.04.2023 © Mikhail Subbotin
 
 EOL_CR = 13
 EOL_LF = 10
@@ -11,6 +11,7 @@ display 'Pseudo C for FASM by Mikhail Subbotin', EOL
 
 include 'custom.inc'
 include 'dependencies.inc'
+include 'ntfslps.inc'
 
 include 'errno.inc'
 include 'gui.inc'
@@ -181,6 +182,7 @@ compatible_calls GetModuleFilePath, GetModuleFilePathA, GetModuleFilePathW
 compatible_calls GetSpecialNtSystemFolderLocation, GetSpecialNtSystemFolderLocationA, GetSpecialNtSystemFolderLocationW
 compatible_calls IsDriveReady, IsDriveReadyA, IsDriveReadyW
 compatible_calls IsPathExist, IsPathExistA, IsPathExistW
+compatible_calls MessageBoxSpecial, MessageBoxSpecialA, MessageBoxSpecialW
 compatible_calls NewFile, NewFileA, NewFileW
 compatible_calls NewFileEx, NewFileExA, NewFileExW
 compatible_calls RegGetValueLength, RegGetValueLengthA, RegGetValueLengthW

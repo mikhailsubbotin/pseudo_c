@@ -1,6 +1,6 @@
 ; Pseudo C / gui.inc
 ; ------------------
-; 22.05.2020 © Mikhail Subbotin
+; 24.04.2023 © Mikhail Subbotin
 
 if ~ definite ACTCTX
 struct ACTCTX
@@ -36,4 +36,34 @@ ACTCTX_FLAG_APPLICATION_NAME_VALID = 32
 end if
 if used ACTCTX_FLAG_HMODULE_VALID & ~ definite ACTCTX_FLAG_HMODULE_VALID
 ACTCTX_FLAG_HMODULE_VALID = 128
+end if
+
+if ~ definite MSGBOXPARAMSA
+struct MSGBOXPARAMSA
+  cbSize dd ?
+  hwndOwner dd ?
+  hInstance dd ?
+  lpszText dd ?
+  lpszCaption dd ?
+  dwStyle dd ?
+  lpszIcon dd ?
+  dwContextHelpId dd ?
+  lpfnMsgBoxCallback dd ?
+  dwLanguageId dd ?
+ends
+end if
+
+if ~ definite MSGBOXPARAMSW
+struct MSGBOXPARAMSW
+  cbSize dd ?
+  hwndOwner dd ?
+  hInstance dd ?
+  lpszText dd ?
+  lpszCaption dd ?
+  dwStyle dd ?
+  lpszIcon dd ?
+  dwContextHelpId dd ?
+  lpfnMsgBoxCallback dd ?
+  dwLanguageId dd ?
+ends
 end if

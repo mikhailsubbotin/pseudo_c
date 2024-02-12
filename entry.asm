@@ -1,6 +1,6 @@
 ; Pseudo C / entry.asm
 ; --------------------
-; 31.03.2022 © Mikhail Subbotin
+; 23.04.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -483,11 +483,7 @@ endp
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
 proc SetBaseConsoleCodePage
-        if defined PSEUDO_C_USE_FSNTLPS & PSEUDO_C_USE_FSNTLPS eq TRUE
-        invoke  FSNTLPS_AreFileApisANSI
-        else
         invoke  AreFileApisANSI
-        end if
         test    eax, eax
         jz      .oem_codepage
         invoke  GetACP

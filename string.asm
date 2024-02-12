@@ -1,6 +1,6 @@
 ; Pseudo C / string.asm
 ; ---------------------
-; 30.03.2023 © Mikhail Subbotin
+; 07.05.2023 © Mikhail Subbotin
 
 align PSEUDO_C_INSTRUCTIONS_ALIGN
 
@@ -156,6 +156,8 @@ _cnt = 12
         sub     ebx, edx
         jmp     @f
 
+        align   PSEUDO_C_INSTRUCTIONS_ALIGN
+
 .general_loop:
         inc     edx
     @@: mov     al, [ebx+edx]
@@ -187,7 +189,8 @@ _src = 8
         push    edi
         mov     edi, [esp+8+_dst]
         cld
-    @@: movsb
+    @@: lodsb
+        stosb
         test    al, al
         jnz     @b
         pop     edi esi
@@ -569,6 +572,8 @@ _cnt = 12
         sub     ebx, edx
         jmp     @f
 
+        align   PSEUDO_C_INSTRUCTIONS_ALIGN
+
 .general_loop:
         add     edx, 2
     @@: mov     ax, [ebx+edx]
@@ -600,7 +605,8 @@ _src = 8
         push    edi
         mov     edi, [esp+8+_dst]
         cld
-    @@: movsw
+    @@: lodsw
+        stosw
         test    ax, ax
         jnz     @b
         pop     edi esi
